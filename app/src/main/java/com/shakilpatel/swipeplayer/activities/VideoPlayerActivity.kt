@@ -101,7 +101,7 @@ open class VideoPlayerActivity : AppCompatActivity() {
             true
         }
         binding.videoPlayer.setOnCompletionListener {
-            binding.videoPlayer.keepScreenOn = binding.videoPlayer.isPlaying
+            binding.root.keepScreenOn = binding.videoPlayer.isPlaying
 
             if (binding.repeatSwitch.isChecked){
                 binding.videoPlayer.start()
@@ -183,7 +183,6 @@ open class VideoPlayerActivity : AppCompatActivity() {
             return EyesTracker(binding)
         }
     }
-
     suspend fun createCameraSource() {
         val detector: FaceDetector = FaceDetector.Builder(this)
             .setTrackingEnabled(true)
