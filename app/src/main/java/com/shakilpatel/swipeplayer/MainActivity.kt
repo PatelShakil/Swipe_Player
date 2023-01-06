@@ -34,6 +34,7 @@ import kotlin.collections.ArrayList
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     lateinit var videoList : ArrayList<VideoModel>
+    lateinit var adapter : VideoListAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -44,6 +45,11 @@ class MainActivity : AppCompatActivity() {
         }
         binding.reelsBtn.setOnClickListener {
             startActivity(Intent(this,ReelsActivity::class.java))
+        }
+        binding.reelsBtn.setOnLongClickListener{
+            videoList = ArrayList()
+            getVideos()
+            true
         }
         videoList = ArrayList()
 
@@ -78,6 +84,9 @@ class MainActivity : AppCompatActivity() {
             } while (cursor.moveToNext())
         }
         videoList.shuffle()
+        adapter = VideoListAdapter(this, videoList)
+        binding.videoListRv.adapter = adapter
+        adapter.notifyDataSetChanged()
         binding.totalVideos.text = "Swipe Player"+"\n"+"You have Total " + videoList.size.toString() +" videos."
     }
     fun sizeConversion(size : String): String{
@@ -136,7 +145,7 @@ class MainActivity : AppCompatActivity() {
         val searchBar : SearchView = searchItem.actionView as SearchView
         searchBar.queryHint = "Search Any Video"
         if (searchBar.query.isEmpty()) {
-            val adapter = VideoListAdapter(this, videoList)
+            adapter = VideoListAdapter(this, videoList)
             binding.videoListRv.adapter = adapter
         }
         if (!searchBar.equals(null)){
@@ -170,7 +179,7 @@ class MainActivity : AppCompatActivity() {
                 list.add(i)
             }
         }
-        val adapter = VideoListAdapter(this,list)
+        adapter = VideoListAdapter(this,list)
         adapter.notifyDataSetChanged()
         binding.totalVideos.text = list.size.toString()
         binding.videoListRv.adapter = adapter

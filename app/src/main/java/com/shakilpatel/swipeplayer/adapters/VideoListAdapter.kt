@@ -83,7 +83,8 @@ class VideoListAdapter : RecyclerView.Adapter<VideoListAdapter.VideoListViewHold
                         .into(popupWindow.contentView.findViewById<ImageView>(R.id.video_thumbnail))
                     popupWindow.contentView.findViewById<ImageView>(R.id.video_thumbnail).setOnClickListener {
                         var intent = Intent(popupWindow.contentView.findViewById<ImageView>(R.id.video_thumbnail).context,VideoPlayerActivity::class.java)
-                        intent.putExtra("uri",model.videoUri)
+                        intent.putExtra("videoList",list)
+                        intent.putExtra("pos",pos)
                         popupWindow.contentView.findViewById<ImageView>(R.id.video_thumbnail).context.startActivity(intent)
                     }
                     popupWindow.contentView.findViewById<TextView>(R.id.video_info_tv).text = "Name : " + model.videoTitle + "\n" +
