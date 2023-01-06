@@ -1,6 +1,7 @@
 package com.shakilpatel.swipeplayer.activities
 
 import android.content.ContentValues.TAG
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -25,6 +26,7 @@ import com.shakilpatel.swipeplayer.databinding.ActivityVideoPlayerBinding
 import com.shakilpatel.swipeplayer.models.VideoModel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.NonCancellable.start
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.io.IOException
 import kotlin.properties.Delegates
@@ -55,34 +57,90 @@ open class VideoPlayerActivity : AppCompatActivity() {
             position = intent.extras?.get("pos").toString().toInt()
             binding.videoPlayer.setVideoURI(Uri.parse(videoList[position]))
             binding.videoPlayer.start()
-//            GlobalScope.launch {
-//                createCameraSource()
-//            }.start()
+            var check = false
+            binding.cameraSwitch.setOnCheckedChangeListener { compoundButton, b ->
+                if (binding.cameraSwitch.isChecked){
+                    GlobalScope.launch {
+                    createCameraSource()
+                    }.start()
+                }else {
+                    cameraSource.release()
+                    binding.videoPlayer.start()
+                }
+            }
         }
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN)
-        binding.videoPlayer.setMediaController(MediaController(this))
-        var check = 0
-        binding.videoPlayer.setOnClickListener {
-            check = 0
-            binding.root.keepScreenOn = true
-        }
-        binding.videoPlayer.setOnCompletionListener {
-            binding.videoPlayer.setOnClickListener {
-                check = 0
-                binding.root.keepScreenOn = true
-            }
-            if (check < 5){
-                binding.root.keepScreenOn = true
+        val m = MediaController(this)
+        m.setPrevNextListeners({
+            if (position == videoList.size - 1){
+                binding.videoPlayer.pause()
+                Toast.makeText(this,"No next video",Toast.LENGTH_SHORT).show()
+                return@setPrevNextListeners
+            }else {
                 binding.videoPlayer.setVideoURI(Uri.parse(videoList[position + 1]))
                 position++
                 binding.videoPlayer.start()
-                binding.videoPlayer.setMediaController(MediaController(this))
-                check++
+            }
+        }) {
+            if (position == 0){
+                Toast.makeText(this,"No previous video",Toast.LENGTH_SHORT).show()
+                return@setPrevNextListeners
+            }else {
+                binding.videoPlayer.setVideoURI(Uri.parse(videoList[position - 1]))
+                position--
+                binding.videoPlayer.start()
+            }
+        }
+        binding.videoPlayer.setMediaController(m)
+        binding.videoPlayer.setOnLongClickListener {
+            binding.root.keepScreenOn = true
+            binding.videoPlayer.setVideoURI(Uri.parse(videoList[position + 1]))
+            position++
+            binding.videoPlayer.start()
+            true
+        }
+        binding.videoPlayer.setOnCompletionListener {
+            binding.videoPlayer.keepScreenOn = binding.videoPlayer.isPlaying
+
+            if (binding.repeatSwitch.isChecked){
+                binding.videoPlayer.start()
+            }else{
+                binding.root.keepScreenOn = true
+            if (position < videoList.size) {
+                binding.root.keepScreenOn = true
+                if (position == videoList.size -1){
+                    binding.videoPlayer.pause()
+                    Toast.makeText(this,"Video list was finished.",Toast.LENGTH_SHORT).show()
+                    return@setOnCompletionListener
+                }else {
+                    binding.videoPlayer.setVideoURI(Uri.parse(videoList[position + 1]))
+                    position++
+                    binding.videoPlayer.start()
+                }
             }else{
                 binding.videoPlayer.pause()
                 binding.root.keepScreenOn = false
             }
+        }
+        }
+        var check = true
+        binding.videoPlayer.setOnClickListener {
+            if (check){
+                binding.videoPlayer.pause()
+                check = false
+            }else{
+                binding.videoPlayer.start()
+                check = true
+            }
+            binding.videoPlayer.keepScreenOn = binding.videoPlayer.isPlaying
+        }
+        binding.shareBtn.setOnClickListener{
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = ("video/mp4")
+            intent.putExtra(Intent.EXTRA_STREAM,Uri.parse(videoList[position]))
+            startActivity(Intent.createChooser(intent,"Share video on ..."))
+            binding.videoPlayer.pause()
         }
     }
 
@@ -162,6 +220,16 @@ open class VideoPlayerActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         binding.videoPlayer.stopPlayback()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.videoPlayer.start()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.videoPlayer.pause()
     }
 
     override fun onBackPressed() {

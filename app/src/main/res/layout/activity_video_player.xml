@@ -10,5 +10,39 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/video_player"/>
+    <ImageButton
+        android:id="@+id/share_btn"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/bottom_round_action_bar"
+        android:src="@drawable/share_icon"
+        android:backgroundTint="@color/white"
+        android:elevation="30dp"
+        android:clickable="true"
+        app:layout_constraintTop_toTopOf="parent"
+        android:outlineSpotShadowColor="@color/white"
+        app:layout_constraintStart_toStartOf="@id/video_player"
+        app:layout_constraintEnd_toEndOf="@id/video_player"
+        android:focusable="true" />
+    <androidx.appcompat.widget.SwitchCompat
+        app:layout_constraintTop_toTopOf="@+id/video_player"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/repeat_switch"
+        android:text="Repeat Video"
+        android:elevation="30dp"
+        android:shadowColor="@color/black"
+        android:shadowRadius="20"
+        app:layout_constraintRight_toRightOf="@+id/video_player" />
+    <androidx.appcompat.widget.SwitchCompat
+        app:layout_constraintTop_toTopOf="@+id/video_player"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/camera_switch"
+        android:elevation="30dp"
+        android:text="Camera Detection"
+        android:shadowColor="@color/black"
+        android:shadowRadius="20"
+        app:layout_constraintLeft_toLeftOf="@+id/video_player"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
