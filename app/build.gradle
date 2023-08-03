@@ -1,16 +1,17 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
 }
 
 android {
     namespace 'com.shakilpatel.swipeplayer'
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.shakilpatel.swipeplayer"
         minSdk 24
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -57,4 +58,10 @@ dependencies {
     //library
     implementation 'com.google.ar:core:1.35.0'
     implementation 'com.otaliastudios:cameraview:2.7.2'
+
+    //room database
+    def room_version = "2.5.1"
+
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
 }

@@ -6,6 +6,7 @@ import android.media.ThumbnailUtils
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -20,18 +21,29 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.shakilpatel.swipeplayer.R
 import com.shakilpatel.swipeplayer.activities.VideoPlayerActivity
+import com.shakilpatel.swipeplayer.classes.Constants
+import com.shakilpatel.swipeplayer.classes.Constants.Companion.videoList
+import com.shakilpatel.swipeplayer.database.MyApp
+import com.shakilpatel.swipeplayer.database.Video
 import com.shakilpatel.swipeplayer.databinding.SampleVideoListItemBinding
 import com.shakilpatel.swipeplayer.models.VideoModel
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 
 
 class VideoListAdapter : RecyclerView.Adapter<VideoListAdapter.VideoListViewHolder> {
     var context : Context
-    var videoList : ArrayList<VideoModel>
+//    var videoList : ArrayList<VideoModel>
 
+
+    @OptIn(DelicateCoroutinesApi::class)
     constructor(context: Context, videoList: ArrayList<VideoModel>) : super() {
         this.context = context
-        this.videoList = videoList
+//        this.videoList = videoList
+        Constants.videoList = videoList
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideoListViewHolder {
@@ -64,7 +76,6 @@ class VideoListAdapter : RecyclerView.Adapter<VideoListAdapter.VideoListViewHold
                 .into(binding.videoThumbnail)
             binding.listVideo.setOnClickListener {
                 var intent = Intent(binding.listVideo.context,VideoPlayerActivity::class.java)
-                intent.putExtra("videoList",list)
                 intent.putExtra("pos",pos)
                 binding.listVideo.context.startActivity(intent)
             }

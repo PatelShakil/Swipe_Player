@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -25,6 +26,7 @@ class PicturePreviewActivity : AppCompatActivity() {
 
     companion object {
         var pictureResult: PictureResult? = null
+        var picName = ""
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,7 +86,7 @@ class PicturePreviewActivity : AppCompatActivity() {
                 PictureFormat.DNG -> "dng"
                 else -> throw RuntimeException("Unknown format.")
             }
-            val destFile = File(filesDir, "picture.$extension")
+            val destFile = File(Environment.getExternalStorageDirectory().toString() + "/SwipePlayer/Photos/" + picName+".png")
             CameraUtils.writeToFile(requireNotNull(pictureResult?.data), destFile) { file ->
                 if (file != null) {
                     val context = this@PicturePreviewActivity

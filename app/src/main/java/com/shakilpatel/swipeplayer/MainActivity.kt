@@ -1,11 +1,13 @@
 package com.shakilpatel.swipeplayer
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothGattCharacteristic.PERMISSION_READ
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -19,12 +21,20 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isEmpty
 import androidx.core.view.isNotEmpty
+import com.google.ar.core.dependencies.e
 import com.google.ar.core.dependencies.i
 import com.shakilpatel.swipeplayer.activities.CameraActivity
 import com.shakilpatel.swipeplayer.activities.ReelsActivity
 import com.shakilpatel.swipeplayer.adapters.VideoListAdapter
+import com.shakilpatel.swipeplayer.classes.Constants
+import com.shakilpatel.swipeplayer.classes.Constants.Companion.videoList
+import com.shakilpatel.swipeplayer.database.MyApp
+import com.shakilpatel.swipeplayer.database.Video
 import com.shakilpatel.swipeplayer.databinding.ActivityMainBinding
 import com.shakilpatel.swipeplayer.models.VideoModel
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -33,8 +43,9 @@ import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
-    lateinit var videoList : ArrayList<VideoModel>
     lateinit var adapter : VideoListAdapter
+    lateinit var videoList : ArrayList<VideoModel>
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -48,10 +59,49 @@ class MainActivity : AppCompatActivity() {
         }
         binding.reelsBtn.setOnLongClickListener{
             videoList = ArrayList()
-            getVideos()
+            if (checkPermission())
+                getVideos()
             true
         }
         videoList = ArrayList()
+
+        var favCheck = true
+        binding.favsBtn.setOnClickListener            {
+            if(favCheck) {
+                favCheck = false
+                videoList.clear()
+                var vList: List<Video>? = null
+                GlobalScope.launch {
+                    vList = MyApp.database.videoDao().getAllVideos()
+                    if (vList?.isNotEmpty() == true) {
+                        vList?.forEach { video ->
+                            Log.d(video.id.toString(), video.videoUri)
+                            videoList.add(
+                                VideoModel(
+                                    video.videoTitle,
+                                    video.videoDuration,
+                                    Uri.parse(video.videoUri),
+                                    video.videoCreationTime,
+                                    video.videoModificationTime,
+                                    video.size
+                                )
+                            )
+                        }
+                    }
+                    adapter = VideoListAdapter(binding.root.context, videoList)
+                    adapter.notifyDataSetChanged()
+                }
+
+            }else{
+                favCheck = true
+                videoList.clear()
+                getVideos()
+            }
+            binding.videoListRv.adapter = adapter
+                    binding.totalVideos.text =
+                "Swipe Player" + "\n" + "You have Total " + videoList.size.toString() + " videos."
+
+        }
 
     }
     @SuppressLint("Range")
@@ -78,8 +128,7 @@ class MainActivity : AppCompatActivity() {
                 val dateadded : Long = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN))
                 val size  = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.SIZE))
                 val datemodified : Long = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.DATE_MODIFIED))
-                val videoModel = VideoModel(title,timeConversion(duration.toLong()),Uri.parse(data),convertLongToTime(dateadded),convertLongToTime(datemodified))
-                videoModel.size = sizeConversion(size)
+                val videoModel = VideoModel(title,timeConversion(duration.toLong()),Uri.parse(data),convertLongToTime(dateadded),convertLongToTime(datemodified),sizeConversion(size))
                 videoList.add(videoModel)
             } while (cursor.moveToNext())
         }
@@ -124,12 +173,21 @@ class MainActivity : AppCompatActivity() {
         return SimpleDateFormat("hh:mm a - MMM dd, yyyy",Locale.getDefault()).format(date)
     }
     fun checkPermission(): Boolean {
-        val READ_EXTERNAL_PERMISSION =
+        val permissions = if(Build.VERSION.SDK_INT >= 33)
+            arrayOf(Manifest.permission.READ_MEDIA_VIDEO,
+            Manifest.permission.READ_MEDIA_IMAGES,
+            Manifest.permission.READ_MEDIA_AUDIO)
+        else
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+
+        val READ_EXTERNAL_PERMISSION = if(Build.VERSION.SDK_INT >= 33)
+            ActivityCompat.checkSelfPermission(this,Manifest.permission.READ_MEDIA_VIDEO)
+        else
             ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
         if (READ_EXTERNAL_PERMISSION != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                this,
-                arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
+                permissions,
                 PERMISSION_READ
             )
             return false

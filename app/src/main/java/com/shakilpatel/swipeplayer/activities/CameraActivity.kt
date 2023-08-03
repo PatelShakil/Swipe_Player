@@ -30,6 +30,7 @@ import com.otaliastudios.cameraview.frame.FrameProcessor
 import com.shakilpatel.swipeplayer.classes.Option
 import com.shakilpatel.swipeplayer.classes.OptionView
 import com.shakilpatel.swipeplayer.R
+import com.shakilpatel.swipeplayer.activities.PicturePreviewActivity.Companion.picName
 import java.io.*
 
 class CameraActivity : AppCompatActivity(), View.OnClickListener, OptionView.Callback {
@@ -188,8 +189,9 @@ class CameraActivity : AppCompatActivity(), View.OnClickListener, OptionView.Cal
                 message("Captured while taking video. Size=" + result.size, false)
                 return
             }
+                picName = System.currentTimeMillis().toString()
                 val direct = File(Environment.getExternalStorageDirectory().toString() + "/SwipePlayer/Photos")
-                val file = File(Environment.getExternalStorageDirectory().toString() + "/SwipePlayer/Photos/" + System.currentTimeMillis().toString()+".png")
+                val file = File(Environment.getExternalStorageDirectory().toString() + "/SwipePlayer/Photos/" + picName+".png")
                 if(!direct.exists())
                     direct.mkdir();
                 if (!file.exists()) {
